@@ -32,6 +32,9 @@ int main(int argc, char *argv[]){
  */
 void showHelp(){
     printf("USAGE: ./http_client [-options] server_url port_number\n");
+    printf("Example: ./http_client www.cnn.com 80\n");
+    printf("or\n");
+    printf("Example: ./ http_client –p www.cnn.com 80\n");
     printf("Avalaible options:\n");
     printf("-p: Prints the RTT for accessing the URL before the server's response.\n");
 }
