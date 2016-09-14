@@ -1,0 +1,14 @@
+CC = gcc
+CFLAGS = -g -wall
+
+all: http_client
+
+http_client: http_client.o
+    $(CC) $(CFLAGS) -o http_client http_client.o
+
+http_client.o: http_client.c
+    $(CC) $(CFLAGS) -c http_client.c
+
+clean:
+    rm -rf http_client
+    rm -rf *.o
