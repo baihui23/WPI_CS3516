@@ -64,6 +64,7 @@ int main(int argc, char *argv[]){
         }
 
         if(tryToConnect(sockDescriptor, address, portNumber) == 0){
+            printf("ERROR: Connection failed");
             return 1;
         }
     }
