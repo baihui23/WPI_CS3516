@@ -34,3 +34,6 @@
 
 #visual studio code
 .vscode/
+
+#executable files
+http_client
