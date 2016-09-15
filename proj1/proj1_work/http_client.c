@@ -10,10 +10,10 @@
 
 // Constants
 #define P_OPTION "-p"
-#define GET_FORMAT "GET %s HTTP/1.0\nHOST: %s\r\n"
+#define GET_FORMAT "GET %s HTTP/1.1\r\nHOST: %s\r\n\r\n"
 
 // Function prototypes
-int tryToConnect(int sockDescriptor, char *address, int portNumber);        // looks up a host and tries to connect              
+int tryToConnect(char *address, int portNumber);                            // looks up a host and tries to connect              
 void disconnect(int sockDescriptor);                                        // Closes the given descriptor
 int isOption(char* arg);                                                    // Indicates wheter the given character array starts with '-'
 void showHelp();                                                            // Prints a series messages on how to use this program
@@ -24,6 +24,7 @@ void showHelp();                                                            // P
  */
 int main(int argc, char *argv[]){
     char* address;                                  // The address to request
+    char* path;                                     //  The path to the file on the server
     int portNumber;                                 // Port number to be used
     int sockDescriptor;                              // Socket file descriptor
     int useP = 0;                                   // Indicates whether the p option should be use.
@@ -36,7 +37,10 @@ int main(int argc, char *argv[]){
     }
     else{
         int i;                                  // Loop counter
-        // Getting the address
+        // Getting the path from the user inpu
+        // if((path = strstr(argv[argc - 2], "/")) == NULL){
+        //     path
+        // }
         address = argv[argc - 2];                   // The address is the second to last argument;
 
         // Making sure that this argument is not an option
@@ -63,22 +67,49 @@ int main(int argc, char *argv[]){
             }
         }
 
-        if(tryToConnect(sockDescriptor, address, portNumber) == 0){
+        if((sockDescriptor = tryToConnect(address, portNumber)) < 0){
             printf("ERROR: Connection failed");
             return 1;
         }
+
+        // Create Get Message
+        char getMessage[1024];
+        sprintf(getMessage, GET_FORMAT, "/", address);
+
+        //Sending the message to the server
+        if(write(sockDescriptor, getMessage, strlen(getMessage)) < 0){
+            perror("Error: Could not write to socket");
+            return 1;
+        }
+
+        printf("Success: Sucessfully send message to server.\n");            // <================================================================================ DELETE =========
+
+        // Read response from server
+        char serverResponse[2048];
+        if(read(sockDescriptor, serverResponse, strlen(serverResponse)) < 0){
+            perror("ERROR: Could not read server response");
+            return 1;
+        }
+
+        printf("Success: Sucessfully received message to server.\n");            // <================================================================================ DELETE =========
+
+        // Closing socket
+        close(sockDescriptor);
+        printf("Success: Socket Closed.\n");            // <================================================================================ DELETE =========
+        
+        printf("%s\n", serverResponse);
     }
     return 0;
 }
 
 /**
  * Looks up the given address and tries to connect
- * @param sockDescriptor
  * @param address The address to look up
  * @param portNumber The port number to use
- * @return 1 on success 0 otherwise
+ * @return socket descripto on success -1 otherwise
  */
-int tryToConnect(int sockDescriptor, char *address, int portNumber){
+int tryToConnect(char *address, int portNumber){
+    int sockDescriptor; 
     struct addrinfo hints;                                                                  // Criteria for the address look up
     struct addrinfo *result;                                                                // Will hold address infos that were returned
     struct addrinfo *loopCounter;                                                           // Will point to the result (above) so we can loop over all of them
@@ -99,13 +130,12 @@ int tryToConnect(int sockDescriptor, char *address, int portNumber){
     // Check if the result was successful or not.
     if(lookUpResult != 0){
         printf("ERROR: Something went wrong while looking up the address. %s\n", gai_strerror(lookUpResult));
-        return 0;
+        return -1;
     }
 
     // Loop through all the addrinfo structs until we find one to connect to.
     for(loopCounter = result; loopCounter != NULL; loopCounter = loopCounter->ai_next){
         sockDescriptor = socket(loopCounter->ai_family, loopCounter->ai_socktype, loopCounter->ai_protocol);                  // Create a new socket struct
-
         // Check to make sure the socket was successfully created
         if (sockDescriptor < 0) {
             // Failed!!
@@ -131,11 +161,11 @@ int tryToConnect(int sockDescriptor, char *address, int portNumber){
     // If we get here we didn't connect to a single one of the results
     if (loopCounter == NULL) {
         printf("ERROR: Failed to connect to server.\n");
-        return 0;
+        return -1;
     }
 
-    freeaddrinfo(result);                                                                       // No longer needed
-    return 1;
+    freeaddrinfo(result);
+    return sockDescriptor;
 } 
 
 /**
