@@ -99,7 +99,6 @@ int main(int argc, char *argv[]){
         while((readResult = read(sockDescriptor, resultBuffer, sizeof(resultBuffer))) > 0){
             resultBuffer[readResult] = 0;
             printf("%s", resultBuffer);
-            // Need to break out somehow
         }
 
         if(readResult < 0)

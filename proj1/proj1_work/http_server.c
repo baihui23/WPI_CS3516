@@ -8,6 +8,15 @@
 #include <netdb.h>
 #include <unistd.h>
 
+// Constants
+#define GET "GET"
+#define HTTP "HTTP/1.1"
+#define HOST "HOST:"
+#define CONCLOSE "Connection: close"
+#define NEWLINE "\r\n"
+
+#define GET_FORMAT "GET %s HTTP/1.1\r\nHOST: %s\r\nConnection: close\r\n\r\n"
+
 // Function prototypes
 void printHelp();                                                       // A method to print usage and such to the user
 int tryToBind(char *servname);
@@ -33,6 +42,25 @@ int main(int argc, char *argv[]){
         int acceptSockDescriptor = 0;                                                       // Accepting file socket descriptor
         while(1){
             acceptSockDescriptor = accept(listenSockDescriptor, NULL, NULL);
+
+            // Reading the message
+            int readResult = 0;
+            char resultBuffer[1024];
+            memset(resultBuffer, '0', sizeof(resultBuffer));
+            
+            while((readResult = read(sockDescriptor, resultBuffer, sizeof(resultBuffer))) > 0){
+                resultBuffer[readResult] = 0;
+                printf("%s", resultBuffer);
+            }
+
+            if(readResult < 0)
+            {
+                printf("ERROR: %s", strerror(errno));
+            }
+
+            //Parsing the message that was sent to the server
+            if(strstr())
+
             char *hello = "Hello, World";
             write(acceptSockDescriptor, hello, strlen(hello));
             close(acceptSockDescriptor);
