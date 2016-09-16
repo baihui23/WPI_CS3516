@@ -10,7 +10,7 @@
 
 // Constants
 #define P_OPTION "-p"
-#define GET_FORMAT "GET %s HTTP/1.1\r\nHOST: %s\r\n\r\n"
+#define GET_FORMAT "GET %s HTTP/1.1\r\nHOST: %s\r\nConnection: close\r\n\r\n"
 
 // Function prototypes
 int tryToConnect(char *host, int portNumber);                               // looks up a host and tries to connect              
@@ -91,104 +91,20 @@ int main(int argc, char *argv[]){
 
         printf("Success: Sucessfully send message to server.\n");            // <================================================================================ DELETE =========
 
+        int readResult = 0;
+        char resultBuffer[6000];
+        memset(resultBuffer, '0', sizeof(resultBuffer));
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        char serverResponse[2048];
-        int responseResult;
-        char header[1024] = "";
-        char contentStart[1024] = "";
-
-        // Getting the header
-        
-        while(strstr(header, "\r\n\r\n") == NULL){
-            responseResult = read(sockDescriptor, serverResponse, strlen(serverResponse));
-            if(responseResult < 0){
-                printf("ERROR: %s", strerror(errno));
-                return 1;
-            }
-            strcat(header, serverResponse);
+        while((readResult = read(sockDescriptor, resultBuffer, sizeof(resultBuffer))) > 0){
+            resultBuffer[readResult] = 0;
+            printf("%s", resultBuffer);
+            // Need to break out somehow
         }
-        printf("%s\n", header);
 
-        // while(1){
-        //     responseResult = read(sockDescriptor, serverResponse, strlen(serverResponse));
-        //     if(responseResult < 0){
-        //         printf("ERROR: %s", strerror(errno));
-        //         return 1;
-        //     }
-        //     else if(strstr(serverResponse, "\r\n\r\n") != NULL){
-        //         strcat(header, strtok(serverResponse, "\r\n\r\n"));
-        //         break;
-        //     }
-        //     else{
-        //         strcat(header, serverResponse);
-        //     }  
-        // }
-
-        // printf("%s\n", header);
-        //Getting the content
-
-
-        // Read response from server
-        // char serverResponse[2048];
-        // while(read(sockDescriptor, serverResponse, strlen(serverResponse)) >= 0){
-        //     printf("%s", serverResponse);
-
-        // }
-
-        // if(read(sockDescriptor, serverResponse, strlen(serverResponse)) < 0){
-        //     perror("ERROR: Could not read server response");
-        //     return 1;
-        // }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        if(readResult < 0)
+        {
+            printf("ERROR: %s", strerror(errno));
+        }
 
         printf("Success: Sucessfully received message to server.\n");            // <================================================================================ DELETE =========
 
