@@ -13,7 +13,7 @@
 #define GET_FORMAT "GET %s HTTP/1.1\r\nHOST: %s\r\n\r\n"
 
 // Function prototypes
-int tryToConnect(char *address, int portNumber);                            // looks up a host and tries to connect              
+int tryToConnect(char *host, int portNumber);                               // looks up a host and tries to connect              
 void disconnect(int sockDescriptor);                                        // Closes the given descriptor
 int isOption(char* arg);                                                    // Indicates wheter the given character array starts with '-'
 void showHelp();                                                            // Prints a series messages on how to use this program
@@ -23,10 +23,10 @@ void showHelp();                                                            // P
  The address  and port number are required arguments.
  */
 int main(int argc, char *argv[]){
-    char* address;                                  // The address to request
-    char* path;                                     //  The path to the file on the server
+    char* host;                                     // The host to connect to can be ip or name
+    char path[1024];                                     // The path to the file on the server if there is one
     int portNumber;                                 // Port number to be used
-    int sockDescriptor;                              // Socket file descriptor
+    int sockDescriptor;                             // Socket file descriptor
     int useP = 0;                                   // Indicates whether the p option should be use.
 
     // Checking to make sure that we have enough arguments
@@ -36,18 +36,25 @@ int main(int argc, char *argv[]){
         return 1;
     }
     else{
-        int i;                                  // Loop counter
-        // Getting the path from the user inpu
-        // if((path = strstr(argv[argc - 2], "/")) == NULL){
-        //     path
-        // }
-        address = argv[argc - 2];                   // The address is the second to last argument;
+        int i;                                                                              // Loop counter
+        char *fullAddress = argv[argc - 2];                                                 // The full address entered by the user.
+        char *pathPtr;
 
         // Making sure that this argument is not an option
-        if(isOption(address)){
+        if(isOption(fullAddress)){
             printf("ERROR: Invalid Address.\n");
             return 1;
         }
+        
+        pathPtr = strstr(fullAddress, "/");                                                    // Locate a '/' and everything after it.
+        if(pathPtr == NULL){                                                                   // If there were no '/' and something after it
+            strcpy(path, "/");
+            host = fullAddress;                                                                 // host is the whole string
+        }
+        else{
+            strcpy(path, pathPtr);
+            host = strtok(fullAddress, "/");
+        }        
 
         // Getting the port number argument;
         portNumber = atoi(argv[argc - 1]);     // The port number should be the last argument
@@ -67,14 +74,14 @@ int main(int argc, char *argv[]){
             }
         }
 
-        if((sockDescriptor = tryToConnect(address, portNumber)) < 0){
+        if((sockDescriptor = tryToConnect(host, portNumber)) < 0){
             printf("ERROR: Connection failed");
             return 1;
         }
 
         // Create Get Message
         char getMessage[1024];
-        sprintf(getMessage, GET_FORMAT, "/", address);
+        sprintf(getMessage, GET_FORMAT, path, host);
 
         //Sending the message to the server
         if(write(sockDescriptor, getMessage, strlen(getMessage)) < 0){
@@ -84,12 +91,104 @@ int main(int argc, char *argv[]){
 
         printf("Success: Sucessfully send message to server.\n");            // <================================================================================ DELETE =========
 
-        // Read response from server
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         char serverResponse[2048];
-        if(read(sockDescriptor, serverResponse, strlen(serverResponse)) < 0){
-            perror("ERROR: Could not read server response");
-            return 1;
+        int responseResult;
+        char header[1024] = "";
+        char contentStart[1024] = "";
+
+        // Getting the header
+        
+        while(strstr(header, "\r\n\r\n") == NULL){
+            responseResult = read(sockDescriptor, serverResponse, strlen(serverResponse));
+            if(responseResult < 0){
+                printf("ERROR: %s", strerror(errno));
+                return 1;
+            }
+            strcat(header, serverResponse);
         }
+        printf("%s\n", header);
+
+        // while(1){
+        //     responseResult = read(sockDescriptor, serverResponse, strlen(serverResponse));
+        //     if(responseResult < 0){
+        //         printf("ERROR: %s", strerror(errno));
+        //         return 1;
+        //     }
+        //     else if(strstr(serverResponse, "\r\n\r\n") != NULL){
+        //         strcat(header, strtok(serverResponse, "\r\n\r\n"));
+        //         break;
+        //     }
+        //     else{
+        //         strcat(header, serverResponse);
+        //     }  
+        // }
+
+        // printf("%s\n", header);
+        //Getting the content
+
+
+        // Read response from server
+        // char serverResponse[2048];
+        // while(read(sockDescriptor, serverResponse, strlen(serverResponse)) >= 0){
+        //     printf("%s", serverResponse);
+
+        // }
+
+        // if(read(sockDescriptor, serverResponse, strlen(serverResponse)) < 0){
+        //     perror("ERROR: Could not read server response");
+        //     return 1;
+        // }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         printf("Success: Sucessfully received message to server.\n");            // <================================================================================ DELETE =========
 
@@ -97,18 +196,18 @@ int main(int argc, char *argv[]){
         close(sockDescriptor);
         printf("Success: Socket Closed.\n");            // <================================================================================ DELETE =========
         
-        printf("%s\n", serverResponse);
+        // printf("%s\n", serverResponse);
     }
     return 0;
 }
 
 /**
- * Looks up the given address and tries to connect
- * @param address The address to look up
+ * Looks up the given host and tries to connect
+ * @param host The host to look up
  * @param portNumber The port number to use
  * @return socket descripto on success -1 otherwise
  */
-int tryToConnect(char *address, int portNumber){
+int tryToConnect(char *host, int portNumber){
     int sockDescriptor; 
     struct addrinfo hints;                                                                  // Criteria for the address look up
     struct addrinfo *result;                                                                // Will hold address infos that were returned
@@ -125,11 +224,11 @@ int tryToConnect(char *address, int portNumber){
     hints.ai_family = AF_UNSPEC;                                                            // Look for both ipv4 and ipv6
     hints.ai_socktype = SOCK_STREAM;
 
-    lookUpResult = getaddrinfo(address, servname, &hints, &result);                         // Make the call to look up the address
+    lookUpResult = getaddrinfo(host, servname, &hints, &result);                         // Make the call to look up the host
 
     // Check if the result was successful or not.
     if(lookUpResult != 0){
-        printf("ERROR: Something went wrong while looking up the address. %s\n", gai_strerror(lookUpResult));
+        printf("ERROR: Something went wrong while looking up the host. %s\n", gai_strerror(lookUpResult));
         return -1;
     }
 
@@ -199,125 +298,3 @@ void showHelp(){
     printf("Avalaible options:\n");
     printf("-p: Prints the RTT for accessing the address before the server's response.\n");
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// int execute(int useP, char* address, int portNumber);   // Executes the user request to get the file
-// char* findIPForHost(char* hostName);                    // Looks up the ip address for hostName
-// int isIPValid(char* ip);                                // Makes sure the argument passed in is a valid ip address
-
-// /**
-//  * Executes the user request to get the file
-//  * @param useP Value indicating wheter the -p option should be used.
-//  * @param address The address to the destination server.
-//  * @param portNumber The port number that should be used to connect to the server.
-//  */
-// int execute(int useP, char* address, int portNumber){
-//     // Creating a socket
-//     int sockDescriptor = socket(AF_INET, SOCK_STREAM, 0);
-//     struct sockaddr_in destinationServer;
-
-//     // Making sure that the socket was actually created
-//     if(sockDescriptor < 0){
-//         printf("ERROR: Could not create socket. %s\n", strerror(errno));
-//         return 1;
-//     }
-
-//     printf("Success: Socket Created.\n");                           // <================================================================================ DELETE =========
-
-//     // Parsing the address
-//     if(isIPValid(address)){                         // Is the address an ip
-//         destinationServer.sin_addr.s_addr = inet_addr(address);
-//         destinationServer.sin_family = AF_INET;
-//         destinationServer.sin_port = htons(portNumber);
-
-//         //Connect to remote server
-//         if (connect(sockDescriptor , (struct sockaddr *)&destinationServer , sizeof(destinationServer)) < 0)
-//         {
-//             printf("ERROR: Could not connect to %s.\n%s", address, strerror(errno));
-//             return 1;
-//         }
-//         printf("Success: Connection sucessfully Created.\n");            // <================================================================================ DELETE =========
-
-//         char message[1024];
-//         sprintf(message, GET_FORMAT, "/", address);
-//         if( send(sockDescriptor , message , strlen(message) , 0) < 0)
-//         {
-//             printf("ERROR: Could not send data to server. %s\n", strerror(errno));
-//             return 1;
-//         }
-//         printf("Success: Sucessfully sent data to server.\n");            // <================================================================================ DELETE =========
-
-//         char server_reply[2048];
-//         //Receive a reply from the server
-//         if(recv(sockDescriptor, server_reply , 2048, 0) < 0)
-//         {
-//             printf("recv failed");
-//         }
-//         printf("Reply received\n");
-//         printf("%s\n", server_reply);
-//     }
-//     else{                                           // Then a host name/ domain is given
-
-//     }
-
-
-//     return 0;
-// }
-
-// /**
-//  * Finds the address of the given host name
-//  * @param hostName a string representing the host name that needs to get an ip for
-//  * @return the ip address for the given host name
-//  */
-// char *findIPForHost(char* hostName){
-
-//     // Look up the host name;
-//     he = gethostbyname(hostName);
-
-//     // Check if something was return
-//     if(he == NULL){
-        
-//     }
-
-// }
-
-// /**
-//  * Validates the string to make sure that it is a valid isIPValid
-//  * @param ip the supposed ip address to be checked
-//  * @return 1 if valid, 0 if not ip is not valid in AF_INET and -1 if 
-//  */
-// int isIPValid(char* ip){
-//     struct sockaddr_in address;
-//     int result = inet_pton(AF_INET, ip, &(address.sin_addr));
-//     if(result < 0){
-//         printf("ERROR: Encountered an error while checking the ip address.\n%s", strerror(errno));
-//         exit(1);
-//     }
-//     return result;
-// }
