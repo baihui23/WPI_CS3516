@@ -58,6 +58,7 @@ int main(int argc, char *argv[]){
 
         // Getting the port number argument;
         portNumber = atoi(argv[argc - 1]);     // The port number should be the last argument
+        printf("%d\n", portNumber);
 
         //Checking to make sure the port number is okay to use.
         if (portNumber > 65536 || portNumber < 0) {
@@ -204,10 +205,13 @@ int isOption(char* arg){
  * Prints messages on how to use this program to the screen.
  */
 void showHelp(){
+    printf("ERROR: Invalid number of arguments");
     printf("USAGE: ./http_client [-options] server_address port_number\n");
     printf("Example: ./http_client www.cnn.com 80\n");
     printf("or\n");
     printf("Example: ./ http_client –p www.cnn.com 80\n");
+    printf("port_number should be between 0 and 65536, inclusive\n");
+    printf("Use 80 for http.\n");
     printf("If port number is invalid, 0 is used\n");
     printf("Each option should be separated by a space character.\n");
     printf("Invalid options are ignored.\n");
