@@ -36,4 +36,6 @@
 .vscode/
 
 #executable files
+#project1
 http_client
+http_server
