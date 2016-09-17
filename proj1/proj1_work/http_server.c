@@ -11,9 +11,9 @@
 // Constants
 #define GET "GET"
 #define HTTP "HTTP/1.1"
-#define HOST "HOST:"
-#define CONCLOSE "Connection: close"
+#define ROOT "/"
 #define NEWLINE "\r\n"
+#define STATUS_OK "200 OK\n"
 
 #define GET_FORMAT "GET %s HTTP/1.1\r\nHOST: %s\r\nConnection: close\r\n\r\n"
 
@@ -43,26 +43,82 @@ int main(int argc, char *argv[]){
         while(1){
             acceptSockDescriptor = accept(listenSockDescriptor, NULL, NULL);
 
-            // Reading the message
+            // Reading the entire message
             int readResult = 0;
             char resultBuffer[1024];
             memset(resultBuffer, '0', sizeof(resultBuffer));
             
-            while((readResult = read(sockDescriptor, resultBuffer, sizeof(resultBuffer))) > 0){
+            printf("Receiving Message.");
+
+            while((readResult = read(acceptSockDescriptor, resultBuffer, sizeof(resultBuffer))) > 0){
                 resultBuffer[readResult] = 0;
-                printf("%s", resultBuffer);
+                printf("..");
+                if(strstr(resultBuffer, NEWLINE)){break;}
             }
 
             if(readResult < 0)
             {
                 printf("ERROR: %s", strerror(errno));
             }
+            
+            printf("\n");
 
             //Parsing the message that was sent to the server
-            if(strstr())
 
-            char *hello = "Hello, World";
-            write(acceptSockDescriptor, hello, strlen(hello));
+            char method[10], path[1024], http[10];
+
+            sscanf(resultBuffer, "%s /%s %s", method, path, http);
+            
+            printf("%s %s %s", method, path, http);
+
+            // Making sure that the request method is a get
+            if(strcmp(method, GET) != 0){                              
+                //Sending the message to the server
+                char *errorMessage = "Invalid request method, Use GET";
+                if(write(acceptSockDescriptor, errorMessage, strlen(errorMessage)) < 0){
+                    perror("Error: Could not write to socket");
+                    return 1;
+                }
+            }
+            else{
+                //Getting the file
+                FILE *file;
+                if(path != NULL || strcmp(path, ROOT) == 0){
+                    file = fopen("test.txt", "r");
+                }
+                else{
+                    file = fopen(path, "r");
+                }
+
+                if(file == NULL){
+                    char *errorMessage = "404 Not Found\n";
+                    if(write(acceptSockDescriptor, errorMessage, strlen(errorMessage)) < 0){
+                        perror("Error: Could not write to socket");
+                        return 1;
+                    }
+                }
+                else{
+                    char * line = NULL;
+                    size_t len = 0;
+                    ssize_t read;
+
+                    if(write(acceptSockDescriptor, STATUS_OK, strlen(STATUS_OK)) < 0){
+                        perror("Error: Could not write to socket");
+                        return 1;
+                    }
+
+                    while ((read = getline(&line, &len, file)) != -1) {
+                        if(write(acceptSockDescriptor, line, len) < 0){
+                            perror("Error: Could not write to socket");
+                            return 1;
+                        }
+                    }
+                    fclose(file);
+                    if (line){
+                        free(line);
+                    }
+                }
+            }
             close(acceptSockDescriptor);
         }
 
