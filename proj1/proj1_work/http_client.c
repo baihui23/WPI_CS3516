@@ -113,7 +113,7 @@ int main(int argc, char *argv[]){
         }
 
         printf("\n");
-
+        
         // Loging the current datetime after receiving data
         gettimeofday(&end, NULL);
 

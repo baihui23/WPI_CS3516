@@ -36,12 +36,24 @@ int main(int argc, char *argv[]){
         // Try to bind/connect
         int listenSockDescriptor = tryToBind(servname);                                                     // Listening File socket descriptor
 
+        if(listenSockDescriptor < 0){
+            printf("Failed to Bind\n");
+            return 1;
+        }
+
         // Now listen, queue the requests
-        listen(listenSockDescriptor, 10);
+        if(listen(listenSockDescriptor, 10) < 0){
+            printf("Error: Listen Failed. %s", strerror(errno));
+            return 1;
+        }
 
         int acceptSockDescriptor = 0;                                                       // Accepting file socket descriptor
         while(1){
             acceptSockDescriptor = accept(listenSockDescriptor, NULL, NULL);
+            if(acceptSockDescriptor < 0){
+                perror("ERROR: Failed to accept connection");
+                continue;
+            }
 
             // Reading the entire message
             int readResult = 0;
@@ -77,13 +89,13 @@ int main(int argc, char *argv[]){
                 char *errorMessage = "Invalid request method, Use GET";
                 if(write(acceptSockDescriptor, errorMessage, strlen(errorMessage)) < 0){
                     perror("Error: Could not write to socket");
-                    return 1;
+                    break;
                 }
             }
             else{
                 //Getting the file
                 FILE *file;
-                if(path != NULL || strcmp(path, ROOT) == 0){
+                if(path != NULL || strcmp(path, ROOT) == 0 || strcmp(path, "index.html") == 0){
                     file = fopen("TMDG.html", "r");
                 }
                 else{
@@ -98,31 +110,38 @@ int main(int argc, char *argv[]){
                     }
                 }
                 else{
-                    char * line = NULL;
-                    size_t len = 0;
-                    ssize_t read;
+                    // Formatting the status message
+                    char statusMessage [strlen(HTTP) + strlen(STATUS_OK) + 1];
+                    sprintf(statusMessage, "%s %s\n", HTTP, STATUS_OK);
 
-                    if(write(acceptSockDescriptor, STATUS_OK, strlen(STATUS_OK)) < 0){
+                    // Try to send the status
+                    if(write(acceptSockDescriptor, statusMessage, strlen(statusMessage)) < 0){
                         perror("Error: Could not write to socket");
-                        return 1;
+                        continue;
                     }
 
-                    while ((read = getline(&line, &len, file)) != -1) {
-                        if(write(acceptSockDescriptor, line, len) < 0){
+                    // Read the whole file
+                    fseek(file, 0, SEEK_END);
+                    long fileSize = ftell(file);
+                    fseek(file, 0, SEEK_SET);
+
+                    char *fileContent = malloc(fileSize + 1);
+                    fread(fileContent, fileSize, 1, file);
+                    fclose(file);
+
+                    fileContent[fileSize] = 0;
+                    printf("%s", fileContent);
+
+                    if(write(acceptSockDescriptor, fileContent, fileSize) < 0){
                             perror("Error: Could not write to socket");
                             return 1;
-                        }
-                        printf("%s", line);
                     }
-                    fclose(file);
-                    if (line){
-                        free(line);
-                    }
+                    free(fileContent);
                 }
             }
             close(acceptSockDescriptor);
         }
-
+        close(listenSockDescriptor);
     }
     return 0;
 }
@@ -144,6 +163,7 @@ int tryToBind(char *servname){
     // Setting value to some of the  members of the hints structure
     hints.ai_family = AF_UNSPEC;                                                            // Look for both ipv4 and ipv6
     hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;                                                            // use my IP
 
     lookUpResult = getaddrinfo(NULL, servname, &hints, &result);                         // Make the call to look up the host
 
@@ -164,6 +184,12 @@ int tryToBind(char *servname){
         }
 
         printf("Success: Socket Created.\n");                           // <================================================================================ DELETE =========
+
+        int yes = 1;
+        if (setsockopt(sockDescriptor, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
+            perror("ERROR: ");
+            return -1;
+        }
 
         // Try to Bind
         if (bind(sockDescriptor, loopCounter->ai_addr, loopCounter->ai_addrlen) < 0) {
