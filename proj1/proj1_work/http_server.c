@@ -84,7 +84,7 @@ int main(int argc, char *argv[]){
                 //Getting the file
                 FILE *file;
                 if(path != NULL || strcmp(path, ROOT) == 0){
-                    file = fopen("test.txt", "r");
+                    file = fopen("TMDG.html", "r");
                 }
                 else{
                     file = fopen(path, "r");
@@ -112,6 +112,7 @@ int main(int argc, char *argv[]){
                             perror("Error: Could not write to socket");
                             return 1;
                         }
+                        printf("%s", line);
                     }
                     fclose(file);
                     if (line){
@@ -144,7 +145,7 @@ int tryToBind(char *servname){
     hints.ai_family = AF_UNSPEC;                                                            // Look for both ipv4 and ipv6
     hints.ai_socktype = SOCK_STREAM;
 
-    lookUpResult = getaddrinfo("Localhost", servname, &hints, &result);                         // Make the call to look up the host
+    lookUpResult = getaddrinfo(NULL, servname, &hints, &result);                         // Make the call to look up the host
 
     // Check if the result was successful or not.
     if(lookUpResult != 0){

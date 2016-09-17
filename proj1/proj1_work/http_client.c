@@ -112,16 +112,15 @@ int main(int argc, char *argv[]){
             printf("ERROR: %s", strerror(errno));
         }
 
+        printf("\n");
+
         // Loging the current datetime after receiving data
         gettimeofday(&end, NULL);
 
         if(useP){
-            double rtt = (end.tv_sec- start.tv_sec)* 1000 + end.tv_usec - start.tv_usec;
+            double rtt = (end.tv_sec- start.tv_sec)* 1000 + (end.tv_usec - start.tv_usec) / 1000;
             printf("RTT: %.2f Ms\n", rtt);
         }
-        
-
-        // printf("%ld\n", ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
 
         printf("Success: Sucessfully received message to server.\n");            // <================================================================================ DELETE =========
 
