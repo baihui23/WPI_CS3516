@@ -7,6 +7,8 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <time.h>
+#include <sys/time.h>
 
 // Constants
 #define P_OPTION "-p"
@@ -39,6 +41,7 @@ int main(int argc, char *argv[]){
         int i;                                                                              // Loop counter
         char *fullAddress = argv[argc - 2];                                                 // The full address entered by the user.
         char *pathPtr;
+        struct timeval start, end;
 
         // Making sure that this argument is not an option
         if(isOption(fullAddress)){
@@ -84,6 +87,9 @@ int main(int argc, char *argv[]){
         char getMessage[1024];
         sprintf(getMessage, GET_FORMAT, path, host);
 
+        // Loging the current datetime before transmission
+        gettimeofday(&start, NULL);
+
         //Sending the message to the server
         if(write(sockDescriptor, getMessage, strlen(getMessage)) < 0){
             perror("Error: Could not write to socket");
@@ -105,6 +111,17 @@ int main(int argc, char *argv[]){
         {
             printf("ERROR: %s", strerror(errno));
         }
+
+        // Loging the current datetime after receiving data
+        gettimeofday(&end, NULL);
+
+        if(useP){
+            double rtt = (end.tv_sec- start.tv_sec)* 1000 + end.tv_usec - start.tv_usec;
+            printf("RTT: %.2f Ms\n", rtt);
+        }
+        
+
+        // printf("%ld\n", ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
 
         printf("Success: Sucessfully received message to server.\n");            // <================================================================================ DELETE =========
 
