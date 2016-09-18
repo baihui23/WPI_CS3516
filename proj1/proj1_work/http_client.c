@@ -76,7 +76,7 @@ int main(int argc, char *argv[]){
         printf("Connecting...\n");
 
         if((sockDescriptor = tryToConnect(host, portNumber)) < 0){                          // Try to connect using the host and port number.
-            printf("ERROR: Connection failed");
+            printf("ERROR: Connection failed\n");
             return 1;
         }
 
