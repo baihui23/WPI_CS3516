@@ -158,7 +158,7 @@ void *processAcceptedSockDesctiptor(void *sockDescriptor)
     char resultBuffer[1024];
     memset(resultBuffer, '0', sizeof(resultBuffer));
 
-    printf("Receiving Message.");
+    printf("Receiving Message.\n");
 
     while ((readResult = read(acceptSockDescriptor, resultBuffer, sizeof(resultBuffer))) > 0)       // Read the message
     {
@@ -183,8 +183,6 @@ void *processAcceptedSockDesctiptor(void *sockDescriptor)
     char method[10], path[1024], http[10];
 
     sscanf(resultBuffer, "%s /%s %s", method, path, http);
-
-    printf("%s %s %s", method, path, http);
 
     // Making sure that the request method is a get
     if (strcmp(method, GET) != 0)
