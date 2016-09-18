@@ -264,6 +264,6 @@ void printHelp()
     printf("ERROR: Invalid number of arguments");
     printf("USAGE: ./http_server port_number\n");
     printf("Example: ./http_server 5008\n");
-    printf("port_number should be between 0 and 65536, inclusive.\n");
+    printf("port_number should be between 1 and 65536, inclusive.\n");
     printf("The higher the better.\n");
 }

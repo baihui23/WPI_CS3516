@@ -205,9 +205,8 @@ void showHelp(){
     printf("Example: ./http_client www.cnn.com 80\n");
     printf("or\n");
     printf("Example: ./ http_client –p www.cnn.com 80\n");
-    printf("port_number should be between 0 and 65536, inclusive\n");
+    printf("port_number should be between 1 and 65536, inclusive\n");
     printf("Use 80 for http.\n");
-    printf("If port number is invalid, 0 is used\n");
     printf("Each option should be separated by a space character.\n");
     printf("Invalid options are ignored.\n");
     printf("Avalaible options:\n");
