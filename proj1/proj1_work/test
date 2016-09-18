@@ -1,0 +1,12 @@
+#!/bin/bash
+./http_client -p 192.168.1.110 9000 > outputs/client_server_output1.txt
+./http_client -p 192.168.1.110/index.html 9000 > outputs/client_server_output2.txt
+./http_client -p 192.168.1.110/TMGD.html 9000 > outputs/client_server_output3.txt
+./http_client -p 192.168.1.110/TMGD.html 9000 > outputs/client_server_output4.txt
+./http_client -p 192.168.1.110/TMGD.html 9000 > outputs/client_server_output5.txt
+./http_client -p 192.168.1.110/TMGD.html 9000 > outputs/client_server_output6.txt
+./http_client -p 192.168.1.110/TMGD.html 9000 > outputs/client_server_output7.txt
+./http_client -p 192.168.1.110/TMGD.html 9000 > outputs/client_server_output8.txt
+./http_client -p 192.168.1.110/TMGD.html 9000 > outputs/client_server_output9.txt
+./http_client -p 192.168.1.110/TMGD.html 9000 > outputs/client_server_output10.txt
+./http_client -p 192.168.1.110/TMGD.html 9000 > outputs/client_server_output11.txt

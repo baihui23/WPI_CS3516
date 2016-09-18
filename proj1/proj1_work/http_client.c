@@ -11,124 +11,117 @@
 #include <sys/time.h>
 
 // Constants
-#define P_OPTION "-p"
-#define GET_FORMAT "GET %s HTTP/1.1\r\nHOST: %s\r\nConnection: close\r\n\r\n"
+#define P_OPTION "-p"                                                               // The -p option that the user can specify to print rtt time to the screen
+#define GET_FORMAT "GET %s HTTP/1.1\r\nHOST: %s\r\nConnection: close\r\n\r\n"       // The format of the get message to be sent to the server, host and path needs to be specified
 
 // Function prototypes
-int tryToConnect(char *host, int portNumber);                               // looks up a host and tries to connect              
-void disconnect(int sockDescriptor);                                        // Closes the given descriptor
-int isOption(char* arg);                                                    // Indicates wheter the given character array starts with '-'
-void showHelp();                                                            // Prints a series messages on how to use this program
+int tryToConnect(char *host, int portNumber);                                       // looks up a host and tries to connect
+int isOption(char* arg);                                                            // Indicates wheter the given string starts with '-', which means the string is an option e.g -p
+void showHelp();                                                                    // Prints a series messages on how to use this program
 
 /**
  * This main method is the starting point of this program, it takes a number of arguments which will be used as options, address and port number;
  The address  and port number are required arguments.
  */
 int main(int argc, char *argv[]){
-    char* host;                                     // The host to connect to can be ip or name
-    char path[1024];                                     // The path to the file on the server if there is one
-    int portNumber;                                 // Port number to be used
-    int sockDescriptor;                             // Socket file descriptor
-    int useP = 0;                                   // Indicates whether the p option should be use.
+    int portNumber;                                                                 // Port number to be used
+    int sockDescriptor;                                                             // Socket file descriptor
+    int useP = 0;                                                                   // Indicates whether the p option should be use.
 
-    // Checking to make sure that we have enough arguments
-    if(argc < 3){
+    if(argc < 3){                                                                   // Checking to make sure that we have enough arguments
         printf("ERROR: You need give an address url/ip and and a port number.\n");
         showHelp();
         return 1;
     }
     else{
-        int i;                                                                              // Loop counter
         char *fullAddress = argv[argc - 2];                                                 // The full address entered by the user.
-        char *pathPtr;
-        struct timeval start, end;
+        char* host;                                                                         // Will hold the host to connect to, can be ip or name
+        char path[1024];                                                                    // Will hold the path to the file need on the server
+        char *pathPtr;                                                                      // Will hold a string with the path and everything after it.
+        int i;                                                                              // Loop counter
+        struct timeval start, end;                                                          // Struct that will hold timestamps for the rtt time calculations
 
-        // Making sure that this argument is not an option
-        if(isOption(fullAddress)){
+        if(isOption(fullAddress)){                                                          // Making sure that this argument is not an option
             printf("ERROR: Invalid Address.\n");
             return 1;
         }
-        
-        pathPtr = strstr(fullAddress, "/");                                                    // Locate a '/' and everything after it.
-        if(pathPtr == NULL){                                                                   // If there were no '/' and something after it
-            strcpy(path, "/");
+
+        pathPtr = strstr(fullAddress, "/");                                                 // Locate a '/' and everything after it.
+        if(pathPtr == NULL){                                                                // If there were no '/' and something after it
+            strcpy(path, "/");                                                                  // make the path '/'
             host = fullAddress;                                                                 // host is the whole string
         }
-        else{
-            strcpy(path, pathPtr);
-            host = strtok(fullAddress, "/");
-        }        
+        else{                                                                               // otherwise
+            strcpy(path, pathPtr);                                                              // copy the path in the path variable
+            host = strtok(fullAddress, "/");                                                    // And the host is all the things before it.
+        }    
 
         // Getting the port number argument;
-        portNumber = atoi(argv[argc - 1]);     // The port number should be the last argument
-        printf("%d\n", portNumber);
+        portNumber = atoi(argv[argc - 1]);                                                  // The port number should be the last argument
 
-        //Checking to make sure the port number is okay to use.
-        if (portNumber > 65536 || portNumber < 0) {
+        if (portNumber > 65536 || portNumber <= 0) {                                        //Checking to make sure the port number is okay to use.
             printf("ERROR: Invalid Port Number!\n");
             return 1;
         }
 
         // Checking if we have more than 3 arguments, which means there should be options to parse
         if(argc > 3){
-            for(i = 1; i < argc - 2; i++){              // Looping through all the arguments starting with the second one.
-                if(!strcmp(P_OPTION, argv[i])){
-                    useP = 1;
+            for(i = 1; i < argc - 2; i++){                                                      // Looping through all the arguments starting with the second one.
+                if(!strcmp(P_OPTION, argv[i])){                                                     // Check if the argument is the p option.
+                    useP = 1;                                                                           // Indicate the p option should be used.
                 }
             }
         }
 
-        if((sockDescriptor = tryToConnect(host, portNumber)) < 0){
+        printf("Connecting...\n");
+
+        if((sockDescriptor = tryToConnect(host, portNumber)) < 0){                          // Try to connect using the host and port number.
             printf("ERROR: Connection failed");
             return 1;
         }
 
-        // Create Get Message
-        char getMessage[1024];
-        sprintf(getMessage, GET_FORMAT, path, host);
+        printf("SUCCESS: Connected to server.\n");
 
-        // Loging the current datetime before transmission
-        gettimeofday(&start, NULL);
+        char getMessage[1024];                                                              // Will hold the message to be sent to the server
+        sprintf(getMessage, GET_FORMAT, path, host);                                        // Format the message.
 
-        //Sending the message to the server
-        if(write(sockDescriptor, getMessage, strlen(getMessage)) < 0){
-            perror("Error: Could not write to socket");
+        gettimeofday(&start, NULL);                                                         // Log the current datetime before transmission
+
+        if(write(sockDescriptor, getMessage, strlen(getMessage)) < 0){                      // Try to send the message to the server
+            perror("SOCK_WRITTING_ERROR:");
+            close(sockDescriptor);
             return 1;
         }
 
-        printf("Success: Sucessfully send message to server.\n");            // <================================================================================ DELETE =========
+        printf("SUCCESS: Message sent to server.\n");
 
-        int readResult = 0;
-        char resultBuffer[6000];
-        memset(resultBuffer, '0', sizeof(resultBuffer));
+        int readResult = 0;                                                                 // Will hold the result of the read
+        char resultBuffer[6000];                                                            // Buffer to hold the part of the message sent back from the server
+        memset(resultBuffer, '0', sizeof(resultBuffer));                                    // 0 the buffer
 
-        while((readResult = read(sockDescriptor, resultBuffer, sizeof(resultBuffer))) > 0){
-            resultBuffer[readResult] = 0;
-            printf("%s", resultBuffer);
+        while((readResult = read(sockDescriptor, resultBuffer, sizeof(resultBuffer))) > 0){ // Loop and read all the message
+            resultBuffer[readResult] = 0;                                                       // make the last character 0
+            printf("%s", resultBuffer);                                                         // Print the buffer to the screen
         }
 
-        if(readResult < 0)
+        if(readResult < 0)                                                                  // Check if the read result is okay
         {
             printf("ERROR: %s", strerror(errno));
+            close(sockDescriptor);
+            return 1;
         }
 
         printf("\n");
         
-        // Loging the current datetime after receiving data
-        gettimeofday(&end, NULL);
+        gettimeofday(&end, NULL);                                                           // Log the current datetime after receiving data
 
-        if(useP){
-            double rtt = (end.tv_sec- start.tv_sec)* 1000 + (end.tv_usec - start.tv_usec) / 1000;
-            printf("RTT: %.2f Ms\n", rtt);
+        if(useP){                                                                           // Check if the rtt should be printed out
+            double rtt = (end.tv_sec- start.tv_sec)* 1000 + (end.tv_usec - start.tv_usec) / 1000;// Calculate the rtt
+            printf("RTT: %.2f Ms\n", rtt);                                                      // Print the rtt
         }
 
-        printf("Success: Sucessfully received message to server.\n");            // <================================================================================ DELETE =========
-
-        // Closing socket
-        close(sockDescriptor);
-        printf("Success: Socket Closed.\n");            // <================================================================================ DELETE =========
-        
-        // printf("%s\n", serverResponse);
+        close(sockDescriptor);                                                              // Close the socket
+        printf("SUCCESS: Socket Closed.\n");
     }
     return 0;
 }
@@ -137,7 +130,7 @@ int main(int argc, char *argv[]){
  * Looks up the given host and tries to connect
  * @param host The host to look up
  * @param portNumber The port number to use
- * @return socket descripto on success -1 otherwise
+ * @return socket descriptor on success -1 otherwise
  */
 int tryToConnect(char *host, int portNumber){
     int sockDescriptor; 
@@ -174,8 +167,6 @@ int tryToConnect(char *host, int portNumber){
             continue;                                                                               // Try again
         }
 
-        printf("Success: Socket Created.\n");                           // <================================================================================ DELETE =========
-
         // Try to connect
         if (connect(sockDescriptor, loopCounter->ai_addr, loopCounter->ai_addrlen) < 0) {
             // Failed!!!
@@ -183,9 +174,6 @@ int tryToConnect(char *host, int portNumber){
             close(sockDescriptor);                                                                  // Close descriptor
             continue;                                                                               // Try again
         }
-
-        printf("Success: Connection sucessfully Created.\n");            // <================================================================================ DELETE =========
-
         break;                                                                                   // Connection successful
     }
 
@@ -197,14 +185,6 @@ int tryToConnect(char *host, int portNumber){
 
     freeaddrinfo(result);
     return sockDescriptor;
-} 
-
-/**
- * Closes descriptor
- * @param sockDescriptor the desctiptor to close
- */
-void disconnect(int sockDescriptor){
-    close(sockDescriptor);
 }
 
 /**

@@ -7,7 +7,7 @@ http_client: http_client.o
 	$(CC) $(CFLAGS) -o http_client http_client.o
 
 http_server: http_server.o
-	$(CC) $(CFLAGS) -o http_server http_server.o
+	$(CC) $(CFLAGS) -o http_server http_server.o -lpthread
 
 http_client.o: http_client.c
 	$(CC) $(CFLAGS) -c http_client.c
