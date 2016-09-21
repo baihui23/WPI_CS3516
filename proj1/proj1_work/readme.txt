@@ -22,3 +22,11 @@ USAGE: ./http_server port_number
 where port_number should be between 1 and 65536, inclusive.
 The higher the better.
 Example: ./http_server 5008
+
+If Using cccworks4.wpi.edu:port_number doesn't work
+run ifconfig to find ip address (inet addr)
+then type in ip_address:port_number in the browser.
+or
+run ./http_client ip_address port_number
+
+The server is multithreaded.
