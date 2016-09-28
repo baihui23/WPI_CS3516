@@ -37,9 +37,13 @@
 *.vscode/
 
 #executable files
+
 #project1
 http_client
 http_server
+
+#project2
+project2
 
 #lock files
 .~lock*

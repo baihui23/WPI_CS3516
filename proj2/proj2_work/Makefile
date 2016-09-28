@@ -1,20 +1,14 @@
 CC = gcc
 CFLAGS = -g -Wall
 
-all: http_client http_server
+all: project2
 
-http_client: http_client.o
-	$(CC) $(CFLAGS) -o http_client http_client.o
+project2: project2.o
+	$(CC) $(CFLAGS) -o project2 project2.o student2.o
 
-http_server: http_server.o
-	$(CC) $(CFLAGS) -o http_server http_server.o -lpthread
-
-http_client.o: http_client.c
-	$(CC) $(CFLAGS) -c http_client.c
-
-http_server.o: http_server.c
-	$(CC) $(CFLAGS) -c http_server.c
+project2.o: project2.c
+	$(CC) $(CFLAGS) -c project2.c student2.c
 
 clean:
-	rm -rf http_client http_server
+	rm -rf project2 student2
 	rm -rf *.o

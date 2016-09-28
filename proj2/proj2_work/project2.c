@@ -37,7 +37,9 @@ VERSIONS:
 #ifdef  WINDOWS
     #include <windows.h>
 #endif
-
+#ifdef LINUX
+    #include <sys/time.h>
+#endif
 
 /* ***************************************************************************
 *********************** NETWORK EMULATION CODE STARTS BELOW ******************
