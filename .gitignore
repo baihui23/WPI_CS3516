@@ -34,8 +34,12 @@
 
 #visual studio code
 .vscode/
+*.vscode/
 
 #executable files
 #project1
 http_client
 http_server
+
+#lock files
+.~lock*
