@@ -10,5 +10,5 @@ project2.o: project2.c
 	$(CC) $(CFLAGS) -c project2.c student2.c
 
 clean:
-	rm -rf project2 student2
+	rm -rf project2
 	rm -rf *.o
