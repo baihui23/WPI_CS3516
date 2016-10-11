@@ -2,6 +2,7 @@
 #include "project3.h"
 
 extern int TraceLevel;
+extern float clocktime;
 
 struct distance_table {
   int costs[MAX_NODES][MAX_NODES];
@@ -11,13 +12,52 @@ struct NeighborCosts   *neighbor0;
 
 /* students to write the following two routines, and maybe some others */
 
+/*
+ * This routine will be called once at the beginning of the emulation. rtinit0() 
+ * has no arguments. It should initialize the distance table in node0 to reflect 
+ * the direct costs to is neighbors by using GetNeighborCosts().
+ */
 void rtinit0() {
+    // If there is a high enough level for tracing pring the clock time when this is called
+    if (TraceLevel >= 0)
+    {
+        printf("At time t=%f, rtinit0() called.\n", clocktime);
+    }
+
+    // Initializing all nodes' cost in node0's distance_table to infinity
+    init_to_infinity(&dt0);
+    
+    //
+
+
+
+
+
 
 }
 
-
 void rtupdate0( struct RoutePacket *rcvdpkt ) {
 
+}
+
+// ----------------------- Helper Methods ----------------------------
+
+/*
+ * Sets all the cost in the given distance table a value of infinity
+ * @param dt the distance table who's nodes need to be set to infinity
+ */
+void init_to_infinity(struct *distance_table dt){
+    int row;                                                                    // row loop counter
+    int column;                                                                 // column loop counter
+
+    // Loop and assign infinity
+    for(row = 0; row < MAX_NODES; row++)
+    {
+        for(column = 0; column < MAX_NODES; column++)
+        {
+            dt->costs[row][column] = INFINITY;
+        }
+    }   
 }
 
 
