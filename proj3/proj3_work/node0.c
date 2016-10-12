@@ -1,15 +1,16 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "project3.h"
+// #include <stdio.h>
+// #include <stdlib.h>
+// #include "project3.h"
+#include "node_helper.h"
 
 #define NODE_ID 0
 
 extern int TraceLevel;
 extern float clocktime;
 
-struct distance_table {
-  int costs[MAX_NODES][MAX_NODES];
-};
+// struct distance_table {
+//   int costs[MAX_NODES][MAX_NODES];
+// };
 struct distance_table dt0;
 struct NeighborCosts   *neighbor0;
 
@@ -18,7 +19,7 @@ void print_trace(char *methodCalled);
 void init_to_infinity(struct distance_table *distanceTable);
 void set_direct_adjacent_costs( struct NeighborCosts *neighborCosts, struct distance_table *distanceTable);
 void send_to_neighbors(int source_id, int numNodesInNetwork, struct distance_table *distanceTable);
-int compute_min_for_column(int column, struct distance_table *distanceTable);
+// int compute_min_for_column(int column, struct distance_table *distanceTable);
 void printdt0( int MyNodeNumber, struct NeighborCosts *neighbor, struct distance_table *dtptr );
 
 
@@ -133,18 +134,18 @@ void send_to_neighbors(int source_id, int numNodesInNetwork, struct distance_tab
  * @param dt The table to compute value for
  * @return the minimum value of the column in the table
  */
-int compute_min_for_column(int column, struct distance_table *dt){
-    int i;
-    int min = INFINITY;
+// int compute_min_for_column(int column, struct distance_table *dt){
+//     int i;
+//     int min = INFINITY;
 
-    for(i = 0; i < MAX_NODES; i++)
-    {
-        int temp = dt->costs[i][column];
-        min = temp < min ? temp : min;
-    }
+//     for(i = 0; i < MAX_NODES; i++)
+//     {
+//         int temp = dt->costs[i][column];
+//         min = temp < min ? temp : min;
+//     }
 
-    return min;
-}
+//     return min;
+// }
 
 // ------------------------- End of helper section ---------------------------------
 
