@@ -49,4 +49,7 @@ project2
 project3
 
 #lock files
+#linux
 .~lock*
+#Windows
+~$*

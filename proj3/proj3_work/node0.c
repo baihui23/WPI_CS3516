@@ -1,5 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "project3.h"
+
+#define NODE_ID 0
 
 extern int TraceLevel;
 extern float clocktime;
@@ -10,6 +13,16 @@ struct distance_table {
 struct distance_table dt0;
 struct NeighborCosts   *neighbor0;
 
+// Function prototypes
+void print_trace(char *methodCalled);
+void init_to_infinity(struct distance_table *distanceTable);
+void set_direct_adjacent_costs( struct NeighborCosts *neighborCosts, struct distance_table *distanceTable);
+void send_to_neighbors(int source_id, int numNodesInNetwork, struct distance_table *distanceTable);
+int compute_min_for_column(int column, struct distance_table *distanceTable);
+void printdt0( int MyNodeNumber, struct NeighborCosts *neighbor, struct distance_table *dtptr );
+
+
+
 /* students to write the following two routines, and maybe some others */
 
 /*
@@ -18,35 +31,50 @@ struct NeighborCosts   *neighbor0;
  * the direct costs to is neighbors by using GetNeighborCosts().
  */
 void rtinit0() {
-    // If there is a high enough level for tracing pring the clock time when this is called
-    if (TraceLevel >= 0)
-    {
-        printf("At time t=%f, rtinit0() called.\n", clocktime);
-    }
+    // Print the trace (trace level is takken into account, no need to check again here.)
+    print_trace("rtinit0()");
 
     // Initializing all nodes' cost in node0's distance_table to infinity
     init_to_infinity(&dt0);
     
-    //
+    // Grab the cost for neighbors
+    neighbor0 = getNeighborCosts(0);
 
+    // Set the direct nodes
+    set_direct_adjacent_costs(neighbor0, &dt0);
 
+    // Send to all the neighbors
+    send_to_neighbors(NODE_ID, neighbor0->NodesInNetwork, &dt0);
 
-
-
+    // Print
+    printdt0(NODE_ID, neighbor0, &dt0);
 
 }
 
-void rtupdate0( struct RoutePacket *rcvdpkt ) {
-
+void rtupdate0(struct RoutePacket *rcvdpkt) {
+    // Print the trace (trace level is takken into account, no need to check again here.)
+    print_trace("rtupdate0()");
 }
 
-// ----------------------- Helper Methods ----------------------------
+// ----------------------- General Helper Methods ----------------------------
+
+/*
+ * Prints the method called being passed as string parameter
+ *@param methodCalled The method that is called and that needs to be traced
+ */
+void print_trace(char *methodCalled){
+    // If there is a high enough level for tracing pring the clock time when this is called
+    if (TraceLevel >= 0)
+    {
+        printf("At time t=%f, %s called.\n", clocktime, methodCalled);
+    }
+}
 
 /*
  * Sets all the cost in the given distance table a value of infinity
- * @param dt the distance table who's nodes need to be set to infinity
+ * @param distanceTable the distance table who's nodes need to be set to infinity
  */
-void init_to_infinity(struct *distance_table dt){
+void init_to_infinity(struct distance_table *distanceTable){
     int row;                                                                    // row loop counter
     int column;                                                                 // column loop counter
 
@@ -55,11 +83,70 @@ void init_to_infinity(struct *distance_table dt){
     {
         for(column = 0; column < MAX_NODES; column++)
         {
-            dt->costs[row][column] = INFINITY;
+            distanceTable->costs[row][column] = INFINITY;
         }
     }   
 }
 
+/*
+ * Sets the cost of the nodes directly connected
+ * @param distanceTable table that contains distances that will be updated
+ * @param neighborCosts struct that contains costs of pahts
+ */
+void set_direct_adjacent_costs(struct NeighborCosts *ncs, struct distance_table *distanceTable){
+    int i;                                                                          // Loop counter
+
+    // Loop over all the nodes in the network
+    for(i = 0; i < ncs->NodesInNetwork; i++)
+    {
+        distanceTable->costs[i][i] = ncs->NodeCosts[i];
+    }
+}
+
+/*
+ * This method creates a packet for each node in the network then computes the min cost of for each colum in
+ * the distance table and one by one sends them to neighbors
+ */
+void send_to_neighbors(int source_id, int numNodesInNetwork, struct distance_table *distanceTable){
+    int i;
+    for(i = 0; i < numNodesInNetwork; i++)
+    {
+        if(i != source_id){
+            struct RoutePacket *routePacket = (struct RoutePacket *)malloc(sizeof(struct RoutePacket));
+            routePacket->destid = i;
+            routePacket->sourceid = source_id;
+        
+            int j;
+            for(j = 0; j<MAX_NODES; j++)
+            {
+                routePacket->mincost[j] = compute_min_for_column(j, distanceTable);
+            }
+
+            toLayer2(*routePacket);
+        }
+    }
+}
+
+/*
+ * Computes the min value of a column in a distance table
+ * @param column the column number to compute for the table
+ * @param dt The table to compute value for
+ * @return the minimum value of the column in the table
+ */
+int compute_min_for_column(int column, struct distance_table *dt){
+    int i;
+    int min = INFINITY;
+
+    for(i = 0; i < MAX_NODES; i++)
+    {
+        int temp = dt->costs[i][column];
+        min = temp < min ? temp : min;
+    }
+
+    return min;
+}
+
+// ------------------------- End of helper section ---------------------------------
 
 /////////////////////////////////////////////////////////////////////
 //  printdt
@@ -77,8 +164,7 @@ void init_to_infinity(struct *distance_table dt){
 //                 constantly updated as the node gets new
 //                 messages from other nodes.
 /////////////////////////////////////////////////////////////////////
-void printdt0( int MyNodeNumber, struct NeighborCosts *neighbor, 
-		struct distance_table *dtptr ) {
+void printdt0( int MyNodeNumber, struct NeighborCosts *neighbor, struct distance_table *dtptr ) {
     int       i, j;
     int       TotalNodes = neighbor->NodesInNetwork;     // Total nodes in network
     int       NumberOfNeighbors = 0;                     // How many neighbors
