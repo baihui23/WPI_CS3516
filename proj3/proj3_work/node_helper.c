@@ -1,5 +1,20 @@
 #include "node_helper.h"
 
+extern int TraceLevel;
+extern float clocktime;
+
+/*
+ * Prints the method called being passed as string parameter
+ *@param methodCalled The method that is called and that needs to be traced
+ */
+void print_trace(char *methodCalled){
+    // If there is a high enough level for tracing pring the clock time when this is called
+    if (TraceLevel >= 0)
+    {
+        printf("At time t=%f, %s called.\n", clocktime, methodCalled);
+    }
+}
+
 /*
  * Sets all the cost in the given distance table a value of infinity
  * @param distanceTable The pointer to the distance table whose nodes' cost need to be set to infinity

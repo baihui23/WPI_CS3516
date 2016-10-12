@@ -1,25 +1,43 @@
-#include <stdio.h>
-#include "project3.h"
+#include "node_helper.h"
 
-extern int TraceLevel;
+#define NODE_ID 2
 
-struct distance_table {
-  int costs[MAX_NODES][MAX_NODES];
-};
+// Function prototypes
+void printdt2( int MyNodeNumber, struct NeighborCosts *neighbor, struct distance_table *dtptr );
+
+// extern int TraceLevel;
+// extern float clocktime;
+
 struct distance_table dt2;
 struct NeighborCosts   *neighbor2;
 
 /* students to write the following two routines, and maybe some others */
 
 void rtinit2() {
+    // Print the trace (trace level is takken into account, no need to check again here.)
+    print_trace("rtinit2()");
 
+    // Initializing all nodes' cost in node2's distance_table to infinity
+    init_to_infinity(&dt2);
+    
+    // Grab the cost for neighbors
+    neighbor2 = getNeighborCosts(NODE_ID);
+
+    // Set the direct nodes
+    set_direct_adjacent_costs(neighbor2, &dt2);
+
+    // Send to all the neighbors
+    send_to_neighbors(NODE_ID, neighbor2->NodesInNetwork, &dt2);
+
+    // Print
+    printdt2(NODE_ID, neighbor2, &dt2);
 }
 
 
 void rtupdate2( struct RoutePacket *rcvdpkt ) {
-
+    // Print the trace (trace level is takken into account, no need to check again here.)
+    print_trace("rtupdate2()");
 }
-
 
 /////////////////////////////////////////////////////////////////////
 //  printdt
@@ -37,8 +55,7 @@ void rtupdate2( struct RoutePacket *rcvdpkt ) {
 //                 constantly updated as the node gets new
 //                 messages from other nodes.
 /////////////////////////////////////////////////////////////////////
-void printdt2( int MyNodeNumber, struct NeighborCosts *neighbor, 
-		struct distance_table *dtptr ) {
+void printdt2( int MyNodeNumber, struct NeighborCosts *neighbor, struct distance_table *dtptr ) {
     int       i, j;
     int       TotalNodes = neighbor->NodesInNetwork;     // Total nodes in network
     int       NumberOfNeighbors = 0;                     // How many neighbors
