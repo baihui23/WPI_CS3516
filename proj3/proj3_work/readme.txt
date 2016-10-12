@@ -1,0 +1,1 @@
+To run: navigate to folder and run make to compile then run ./project3 1
