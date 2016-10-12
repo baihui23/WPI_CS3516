@@ -16,9 +16,9 @@ struct NeighborCosts   *neighbor0;
 
 // Function prototypes
 void print_trace(char *methodCalled);
-void init_to_infinity(struct distance_table *distanceTable);
-void set_direct_adjacent_costs( struct NeighborCosts *neighborCosts, struct distance_table *distanceTable);
-void send_to_neighbors(int source_id, int numNodesInNetwork, struct distance_table *distanceTable);
+// void init_to_infinity(struct distance_table *distanceTable);
+// void set_direct_adjacent_costs( struct NeighborCosts *neighborCosts, struct distance_table *distanceTable);
+// void send_to_neighbors(int source_id, int numNodesInNetwork, struct distance_table *distanceTable);
 // int compute_min_for_column(int column, struct distance_table *distanceTable);
 void printdt0( int MyNodeNumber, struct NeighborCosts *neighbor, struct distance_table *dtptr );
 
@@ -75,58 +75,58 @@ void print_trace(char *methodCalled){
  * Sets all the cost in the given distance table a value of infinity
  * @param distanceTable the distance table who's nodes need to be set to infinity
  */
-void init_to_infinity(struct distance_table *distanceTable){
-    int row;                                                                    // row loop counter
-    int column;                                                                 // column loop counter
+// void init_to_infinity(struct distance_table *distanceTable){
+//     int row;                                                                    // row loop counter
+//     int column;                                                                 // column loop counter
 
-    // Loop and assign infinity
-    for(row = 0; row < MAX_NODES; row++)
-    {
-        for(column = 0; column < MAX_NODES; column++)
-        {
-            distanceTable->costs[row][column] = INFINITY;
-        }
-    }   
-}
+//     // Loop and assign infinity
+//     for(row = 0; row < MAX_NODES; row++)
+//     {
+//         for(column = 0; column < MAX_NODES; column++)
+//         {
+//             distanceTable->costs[row][column] = INFINITY;
+//         }
+//     }   
+// }
 
 /*
  * Sets the cost of the nodes directly connected
  * @param distanceTable table that contains distances that will be updated
  * @param neighborCosts struct that contains costs of pahts
  */
-void set_direct_adjacent_costs(struct NeighborCosts *ncs, struct distance_table *distanceTable){
-    int i;                                                                          // Loop counter
+// void set_direct_adjacent_costs(struct NeighborCosts *ncs, struct distance_table *distanceTable){
+//     int i;                                                                          // Loop counter
 
-    // Loop over all the nodes in the network
-    for(i = 0; i < ncs->NodesInNetwork; i++)
-    {
-        distanceTable->costs[i][i] = ncs->NodeCosts[i];
-    }
-}
+//     // Loop over all the nodes in the network
+//     for(i = 0; i < ncs->NodesInNetwork; i++)
+//     {
+//         distanceTable->costs[i][i] = ncs->NodeCosts[i];
+//     }
+// }
 
 /*
  * This method creates a packet for each node in the network then computes the min cost of for each colum in
  * the distance table and one by one sends them to neighbors
  */
-void send_to_neighbors(int source_id, int numNodesInNetwork, struct distance_table *distanceTable){
-    int i;
-    for(i = 0; i < numNodesInNetwork; i++)
-    {
-        if(i != source_id){
-            struct RoutePacket *routePacket = (struct RoutePacket *)malloc(sizeof(struct RoutePacket));
-            routePacket->destid = i;
-            routePacket->sourceid = source_id;
+// void send_to_neighbors(int source_id, int numNodesInNetwork, struct distance_table *distanceTable){
+//     int i;
+//     for(i = 0; i < numNodesInNetwork; i++)
+//     {
+//         if(i != source_id){
+//             struct RoutePacket *routePacket = (struct RoutePacket *)malloc(sizeof(struct RoutePacket));
+//             routePacket->destid = i;
+//             routePacket->sourceid = source_id;
         
-            int j;
-            for(j = 0; j<MAX_NODES; j++)
-            {
-                routePacket->mincost[j] = compute_min_for_column(j, distanceTable);
-            }
+//             int j;
+//             for(j = 0; j<MAX_NODES; j++)
+//             {
+//                 routePacket->mincost[j] = compute_min_for_column(j, distanceTable);
+//             }
 
-            toLayer2(*routePacket);
-        }
-    }
-}
+//             toLayer2(*routePacket);
+//         }
+//     }
+// }
 
 /*
  * Computes the min value of a column in a distance table
