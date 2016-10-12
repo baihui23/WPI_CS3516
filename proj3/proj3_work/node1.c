@@ -17,11 +17,11 @@ void rtinit1() {
     // Print the trace (trace level is takken into account, no need to check again here.)
     print_trace("rtinit1()");
 
-    // Initializing all nodes' cost in node1's distance_table to infinity
-    init_to_infinity(&dt1);
-    
     // Grab the cost for neighbors
     neighbor1 = getNeighborCosts(NODE_ID);
+
+    // Initializing all nodes' cost in node1's distance_table to infinity
+    init_to_infinity(neighbor1->NodesInNetwork, &dt1);
 
     // Set the direct nodes
     set_direct_adjacent_costs(neighbor1, &dt1);
@@ -38,7 +38,7 @@ void rtupdate1( struct RoutePacket *rcvdpkt ) {
     // Print the trace (trace level is takken into account, no need to check again here.)
     print_trace("rtupdate1()");
 
-    int needsUpdate = try_set_min_cost(rcvdpkt, &dt1);
+    int needsUpdate = try_set_min_cost(neighbor1->NodesInNetwork, rcvdpkt, &dt1);
 
     if(needsUpdate){
         // Send to all the neighbors
