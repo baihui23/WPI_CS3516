@@ -42,6 +42,16 @@ void rtinit0() {
 void rtupdate0(struct RoutePacket *rcvdpkt) {
     // Print the trace (trace level is takken into account, no need to check again here.)
     print_trace("rtupdate0()");
+
+    int needsUpdate = try_set_min_cost(rcvdpkt, &dt0);
+
+    if(needsUpdate){
+        // Send to all the neighbors
+        send_to_neighbors(NODE_ID, neighbor0->NodesInNetwork, &dt0);
+    }
+
+    // Print
+    printdt0(NODE_ID, neighbor0, &dt0);
 }
 
 /////////////////////////////////////////////////////////////////////
