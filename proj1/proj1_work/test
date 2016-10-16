@@ -1,4 +1,5 @@
-#!/bin/bash
+#! /bin/bash
+#This file when run will submit web request to our server in order to test multi threading
 ./http_client -p 192.168.1.110 9000 > outputs/client_server_output1.txt
 ./http_client -p 192.168.1.110/index.html 9000 > outputs/client_server_output2.txt
 ./http_client -p 192.168.1.110/TMGD.html 9000 > outputs/client_server_output3.txt
